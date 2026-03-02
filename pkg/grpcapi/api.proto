@@ -1,0 +1,69 @@
+/* This proto file is a blueprint for how our services will talk to 
+each other. When there are separate programs (scheduler, coordinator, 
+worker) that communicate via network, they need to agree on exactly
+what data they're sending and recieving. After running this through
+a code generator (protoc), it produces Go code with structs and 
+interfaces that your services use to communicate via gRPC. */
+
+syntax = "proto3"; 
+package grpcapi;
+option go_package = "github.com/ben-khong/Distributed-Task-Scheduler/pkg/grpcapi";
+
+enum TaskStatus {
+    QUEUED = 0;
+    STARTED = 1;
+    COMPLETE = 2;
+    FAILED = 3;
+}
+
+message TaskRequest {
+    string task_id = 1;
+    string data = 2;
+}
+
+message TaskResponse {
+    string taskID = 1;
+    string msg = 2;
+    bool success = 3;
+}
+
+service WorkerService {
+    rpc SubmitTask (TaskRequest) returns (TaskResponse) {}
+}
+
+message ClientTaskRequest {
+    string data = 1;
+}
+
+message ClientTaskResponse {
+    string taskID = 1;
+    string msg = 2;
+}
+
+message SendHeartbeatRequest {
+    uint32 workerID = 1;
+    string address = 2;
+}
+
+message SendHeartbeatResponse {
+    bool acknowledged = 1;
+}
+
+message UpdateTaskStatusRequest {
+    string taskID = 1;
+    TaskStatus status = 2;
+    int64 started_at = 3;
+    int64 completed_at = 4;
+    int64 failed_at = 5;
+}
+
+message UpdateTaskStatusResponse {
+    bool success = 1;
+}
+
+service CoordinatorService {
+    rpc SubmitTask (ClientTaskRequest) returns (ClientTaskResponse) {}
+    rpc SendHeartbeat (SendHeartbeatRequest) returns (SendHeartbeatResponse) {}
+    rpc UpdateTaskStatus (UpdateTaskStatusRequest) returns (UpdateTaskStatusResponse) {}
+}
+
