@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"log"
 
 	"github.com/ben-khong/Distributed-Task-Scheduler/pkg/worker"
 )
@@ -14,5 +15,7 @@ var (
 func main() {
 	flag.Parse()
 	w := worker.NewServer(*workerPort, *coordinatorAddr)
-	w.Start()
+	if err := w.Start(); err != nil {
+		log.Fatalf("Error while starting worker: %+v", err)
+	}
 }

@@ -1,0 +1,49 @@
+services:
+  postgres:
+    build:
+      context: .
+      dockerfile: postgres-dockerfile
+    environment:
+      POSTGRES_DB: taskmaster
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+
+  scheduler:
+    build:
+      context: .
+      dockerfile: scheduler-dockerfile
+    environment:
+      POSTGRES_DB: taskmaster
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_HOST: postgres
+    ports:
+      - "8081:8081"
+    depends_on:
+      - postgres
+
+  coordinator:
+    build:
+      context: .
+      dockerfile: coordinator-dockerfile
+    environment:
+      POSTGRES_DB: taskmaster
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_HOST: postgres
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+
+  worker:
+    build:
+      context: .
+      dockerfile: worker-dockerfile
+    environment:
+      WORKER_ADDRESS: worker
+    command: ["./worker", "-coordinator=coordinator:8080"]
+    depends_on:
+      - coordinator

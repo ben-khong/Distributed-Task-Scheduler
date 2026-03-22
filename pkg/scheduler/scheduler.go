@@ -50,7 +50,6 @@ func NewServer(port string, dbConnectionString string) *SchedulerServer {
 }
 
 func (s *SchedulerServer) Start() error {
-	log.Printf("Start")
 	var err error
 	s.pool, err = common.ConnectToDatabase(s.ctx, s.dbConnectionString)
 	if err != nil {
@@ -59,6 +58,7 @@ func (s *SchedulerServer) Start() error {
 	http.HandleFunc("/schedule", s.handleScheduleTask)
 	http.HandleFunc("/status", s.handleGetTaskStatus)
 	s.httpServer = &http.Server{Addr: s.port}
+	log.Printf("Starting scheduler server on %s\n", s.port)
 	go func() {
 		if err := s.httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("Server error: %s\n", err)
